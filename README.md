@@ -1,5 +1,4 @@
 # Trabajo Práctico N°2
-----------------------
-Itegrantes
+Integrantes
 - Nicolas Gonzalez
 - Bautista Crocco
