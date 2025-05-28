@@ -1,0 +1,19 @@
+enum CategoriaPlato {
+    ENTRADA
+    PRINCIPAL
+    POSTRE
+}
+
+model Plato {
+    id Int @id @default(autoincrement()) 
+    nombre String @unique
+    descripcion String
+    precio Decimal
+    categoria CategoriaPlato
+
+    menuId  Int
+    menu    Menu   @relation(fields: [menuId], references: [id])
+    pedidos PlatosPedidos[]
+
+    @@map("Platos")
+}

@@ -1,0 +1,8 @@
+model Menu {
+  id     Int     @id @default(autoincrement())
+  nombre String
+
+  platos Plato[]
+
+  @@map("Menus")
+}

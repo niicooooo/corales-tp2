@@ -1,0 +1,12 @@
+model PlatosPedidos {
+    id Int @id @default(autoincrement())
+    pedidoId String
+    platoId Int
+    cantidad Int
+
+    pedido Pedido @relation(fields: [pedidoId], references: [id])
+    plato Plato @relation(fields: [platoId], references: [id])
+
+    @@unique([pedidoId, platoId])
+    @@map("PlatosPedidos")
+}

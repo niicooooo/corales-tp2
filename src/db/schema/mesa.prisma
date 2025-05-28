@@ -1,0 +1,11 @@
+enum EstadoMesa {
+    RESERVADA
+    DISPONIBLE
+}
+
+model Mesa {
+    id      Int         @id
+    estado EstadoMesa
+
+    @@map("Mesas")
+}
