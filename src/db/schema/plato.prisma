@@ -10,6 +10,7 @@ model Plato {
     descripcion String
     precio Decimal
     categoria CategoriaPlato
+    activo Boolean @default(true)
 
     menuId  Int
     menu    Menu   @relation(fields: [menuId], references: [id])

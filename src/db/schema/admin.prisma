@@ -1,0 +1,8 @@
+model Admin {
+    id          String  @id @default(cuid())
+    nombre      String
+
+    contraseña  String 
+
+    @@map("Administradores")
+}

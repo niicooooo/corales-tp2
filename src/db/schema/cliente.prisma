@@ -1,19 +1,14 @@
-enum ClienteRol {
-    ADMINISTRADOR
-    CLIENTE
-}
-
 model Cliente {
     id          String  @id @default(cuid())
     nombre      String
     
     correo      String  @unique
-    telefono    String     @unique
+    telefono    String  @unique
     direccion   String   
+    cantidad_pedidos Int @default(0)
     pedidos     Pedido[]
     
     contraseña  String 
-    rol         ClienteRol
 
     @@map("Clientes")
 }

@@ -4,8 +4,9 @@ enum EstadoMesa {
 }
 
 model Mesa {
-    id      Int         @id
-    estado EstadoMesa
+    id      Int         @id @default(autoincrement())
+    estado EstadoMesa @default(DISPONIBLE)
+    activa Boolean @default(true)
 
     @@map("Mesas")
 }
