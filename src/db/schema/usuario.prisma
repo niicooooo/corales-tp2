@@ -1,0 +1,21 @@
+enum UsuarioRol {
+    CLIENTE
+    ADMIN
+}
+
+model Usuario {
+    id              String  @id @default(cuid())
+    nombre          String
+    
+    correo          String  @unique
+    telefono        String  @unique
+    direccion       String   
+    cantidad_pedidos Int @default(0)
+    
+    pedidos         Pedido[]
+    rol             UsuarioRol
+
+    contraseña  String 
+
+    @@map("Usuarios")
+}

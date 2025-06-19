@@ -5,7 +5,7 @@ enum CategoriaPlato {
 }
 
 model Plato {
-    id Int @id @default(autoincrement()) 
+    id      Int @id @default(autoincrement()) 
     nombre String @unique
     descripcion String
     precio Decimal

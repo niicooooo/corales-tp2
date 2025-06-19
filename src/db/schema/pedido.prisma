@@ -6,7 +6,7 @@ enum EstadoPedido {
 
 model Pedido {
     id                  String          @id @default(cuid())
-    clienteId           String
+    usuarioId           String
     estado              EstadoPedido
     monto               Decimal 
     descuento           Decimal
@@ -14,7 +14,7 @@ model Pedido {
     
     platos              PlatosPedidos[]
 
-    cliente             Cliente         @relation(fields: [clienteId], references: [id])
+    cliente             Usuario         @relation(fields: [usuarioId], references: [id])
 
 
     @@map("Pedidos")

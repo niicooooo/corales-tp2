@@ -1,5 +1,5 @@
 import { db } from "../db/db"
-import { registerClienteBody, reservarMesaBody } from "../types/clienteTypes"
+import { registerClienteBody, reservarMesaBody } from "../types/usuarioTypes"
 import { ErrorMessage } from "../utils/mensajes"
 import { MesaService } from "./mesaService";
 import { getEstadoPedidoBody } from "../types/pedidoTypes";
@@ -7,7 +7,7 @@ import { PedidoService } from "./pedidoService";
 import { MenuService } from "./menuService";
 import { getMenuByIdBody } from "../types/menuTypes";
 
-export class ClienteService{
+export class UsuarioService{
 
     private mesaService = new MesaService()
     private pedidoService = new PedidoService()
@@ -16,8 +16,11 @@ export class ClienteService{
     async crearCliente(body: registerClienteBody) {
         try {
 
-            const cliente = await db.cliente.create({
-                data: body
+            const cliente = await db.usuario.create({
+                data: {
+                    rol: "CLIENTE",
+                    ...body
+                }
             })
 
             return cliente;

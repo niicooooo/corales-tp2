@@ -9,14 +9,15 @@
     "db:generate": "prisma generate --no-engine --schema src/db/schema"
   },
   "dependencies": {
-    "@prisma/client": "^6.7.0",
+    "@prisma/client": "^6.10.0",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
-    "prisma": "^6.7.0",
+    "prisma": "^6.10.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   }
