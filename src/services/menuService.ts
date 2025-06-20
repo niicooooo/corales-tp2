@@ -3,23 +3,22 @@ import { getMenuByIdBody } from "../types/menuTypes"
 
 export class MenuService {
 
-    async getMenuById(menuId: getMenuByIdBody) {
-        try {
-            
-            const platos = await db.menu.findUnique({
-                where: {
-                    id: menuId.id
-                },
-                include: {
-                    platos: true
-                }
-            })
+    async getMenuById(menuId: number) {
 
-            return platos;
+        const platos = await db.menu.findUnique({
+            where: {
+                id: menuId
+            },
+            include: {
+                platos: true
+            }
+        })
 
-        } catch (error) {
-            
+        if(!platos) {
+            throw new Error("El menu: " + menuId + ". No tiene ningun plato.")
         }
+
+        return platos;
     }
 
 }

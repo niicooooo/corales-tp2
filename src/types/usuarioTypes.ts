@@ -6,11 +6,6 @@ export interface registerClienteBody {
     contraseña: string
 }
 
-export interface loginClienteBody {
-    correo: string,
-    contraseña: string
-}
-
 export interface reservarMesaBody {
     id: number
 }

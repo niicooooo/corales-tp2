@@ -1,8 +1,5 @@
 import { db } from "../db/db"
-import { getEstadoPedidoBody, PedidoCompletoBody } from "../types/pedidoTypes";
-import { PlatoPedidoService } from "./platoPedidoService";
-import { Decimal } from "@prisma/client/runtime/library";
-
+import { cambiarEstadoPedidoBody, crearPedidoBody, getEstadoPedidoBody } from "../types/pedidoTypes";
 export class PedidoService {
 
     async getEstadoPedido(pedidoId: getEstadoPedidoBody) {
@@ -19,6 +16,31 @@ export class PedidoService {
 
             return pedido?.estado;
 
+        } catch (error) {
+            
+        }
+    }
+
+    async cambiarEstadoPedido(body: cambiarEstadoPedidoBody) {
+        try {
+            const pedido = await db.pedido.update({
+                where: {
+                    id: body.id
+                },
+                data:{
+                    estado: body.estado
+                }
+            })
+
+            return pedido;
+        } catch (error) {
+            
+        }
+    }
+
+    async crearPedido(body: crearPedidoBody) {
+        try {
+            
         } catch (error) {
             
         }

@@ -1,84 +1,64 @@
 import { db } from "../db/db"
-import { registerClienteBody, reservarMesaBody } from "../types/usuarioTypes"
-import { ErrorMessage } from "../utils/mensajes"
-import { MesaService } from "./mesaService";
-import { getEstadoPedidoBody } from "../types/pedidoTypes";
-import { PedidoService } from "./pedidoService";
-import { MenuService } from "./menuService";
-import { getMenuByIdBody } from "../types/menuTypes";
+import { registerClienteBody } from "../types/usuarioTypes"
+import bcrypt from "bcrypt"
 
+const salt_rounds = Number(process.env.SALT_ROUNDS)
 export class UsuarioService{
 
-    private mesaService = new MesaService()
-    private pedidoService = new PedidoService()
-    private menuService = new MenuService()
-
-    async crearCliente(body: registerClienteBody) {
-        try {
-
-            const cliente = await db.usuario.create({
-                data: {
-                    rol: "CLIENTE",
-                    ...body
-                }
-            })
-
-            return cliente;
-
-        } catch (error: any) {
-
-            console.log("Error creando usuario: ", body)
-            console.log(ErrorMessage() + error.message);
-            throw new Error("Error al crear usuario. Mira los logs para más información.")
+    async registrarCliente(body: registerClienteBody) {
         
+        const correo = await db.usuario.findFirst({
+            where: {
+                correo: body.correo
+            }
+        })
+
+        if(correo){
+            throw new Error("Correo ya registrado.")
         }
+
+        const telefono = await db.usuario.findFirst({
+            where: {
+                telefono: body.telefono
+            }
+        })
+
+        if(telefono) {
+            throw new Error("Telefono ya registrado.")
+        }
+
+        const cliente = await db.usuario.create({
+            data: {
+                nombre: body.nombre,
+                correo: body.correo,
+                telefono: body.telefono,
+                direccion: body.direccion,
+                rol: "CLIENTE",
+                contraseña: await bcrypt.hash(body.contraseña, salt_rounds)
+            }
+        })
+
+        return cliente.id;
     }
 
-    async reservarMesa(mesaId: reservarMesaBody) {
-        try {
-
-            const mesaReservada = await this.mesaService.cambiarEstadoMesaReservada(mesaId)
-
-            return mesaReservada;
-
-        } catch (error) {
+    async logearCliente(correo: string, contraseña: string) {
             
+        const usuario = await db.usuario.findFirst({
+            where: {
+                correo: correo
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("El usuario no existe.")
         }
-    }
 
-    async verMesasDisponibles() {
-        try {
+        const isValid = await bcrypt.compare(contraseña, usuario.contraseña)
 
-            const mesasDisponibles = await this.mesaService.getMesasDisponibles()
-
-            return mesasDisponibles;
-
-        } catch (error) {
-            
+        if(!isValid) {
+            throw new Error("Constraseña incorrecta.")
         }
-    }
 
-    async verEstadoDelPedido(pedidoId: getEstadoPedidoBody) {
-        try {
-
-            const estado = await this.pedidoService.getEstadoPedido(pedidoId)
-
-            return estado;
-
-        } catch (error) {
-            
-        }
-    }
-
-    async verMenuPorId(menuId: getMenuByIdBody) {
-        try {
-
-            const platos = await this.menuService.getMenuById(menuId)
-
-            return platos;
-
-        } catch (error) {
-            
-        }
+        return usuario
     }
 }

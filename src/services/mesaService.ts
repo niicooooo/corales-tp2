@@ -5,85 +5,115 @@ import { eliminarMesaBody, modificarEstadoMesaBody } from "../types/mesaTypes";
 export class MesaService {
 
     async getMesasDisponibles() {
-        try {
-            const mesasDisponibles = await db.mesa.findMany({
-                where: {
-                    estado: EstadoMesa.DISPONIBLE
-                }
-            })
 
-            return mesasDisponibles;
+        const mesasDisponibles = await db.mesa.findMany({
+            where: {
+                estado: EstadoMesa.DISPONIBLE,
+                activa: true
+            }
+        })
 
-        } catch (error) {
-            
+        if(!mesasDisponibles) {
+            throw new Error("No hay ninguna mesa disponible.")
         }
+
+        return mesasDisponibles;
     }
 
     async cambiarEstadoMesaDisponible(mesaId: modificarEstadoMesaBody) {
-        try {
-            const mesaModificada = await db.mesa.update({
-                where: {
-                    id: mesaId.id
-                },
-                data: {
-                    estado: EstadoMesa.DISPONIBLE
-                }
-            })
 
-            return mesaModificada;
-        } catch (error) {
-            
+        const mesa = await db.mesa.findFirst({
+            where: {
+                id: mesaId.id
+            }
+        })
+
+        if(!mesa) {
+            throw new Error("No se encontro la mesa con id: " + mesaId.id)
         }
+
+        const mesaModificada = await db.mesa.update({
+            where: {
+                id: mesaId.id
+            },
+            data: {
+                estado: EstadoMesa.DISPONIBLE
+            }
+        })
+
+        return mesaModificada;
     }
 
-    async cambiarEstadoMesaReservada(mesaId: modificarEstadoMesaBody) {
-        try {
-            const mesaModificada = await db.mesa.update({
-                where: {
-                    id: mesaId.id
-                },
-                data: {
-                    estado: EstadoMesa.RESERVADA
-                }
-            })
+    async reservarMesa(mesaId: modificarEstadoMesaBody) {
 
-            return mesaModificada;
-        } catch (error) {
-            
+        const mesa = await db.mesa.findUnique({
+            where: { id: mesaId.id }
+        });
+
+        if (!mesa) {
+            throw new Error("La mesa no existe.");
         }
+
+        if (mesa.estado !== EstadoMesa.DISPONIBLE) {
+            throw new Error("La mesa no esta disponible para ser reservada.");
+        }
+
+        const mesaModificada = await db.mesa.update({
+            where: {
+                id: mesaId.id
+            },
+            data: {
+                estado: EstadoMesa.RESERVADA
+            }
+        })
+
+        return mesaModificada;
+
     }
 
     async crearMesa() {
-        try {
-            
-            const mesa = await db.mesa.create({
-                data: {}
-            })
 
-            return mesa;
+        const cantidadMesas = await db.mesa.count({
+            where: {
+                activa: true
+            }
+        });
 
-        } catch (error) {
-            
+        if (cantidadMesas >= 15) {
+            throw new Error("No se pueden crear mas mesas. Limite alcanzado (15).");
         }
+
+        const mesa = await db.mesa.create({
+            data: {}
+        })
+
+        return mesa;
+
     }
 
     async eliminarMesa(mesaId: eliminarMesaBody) {
-        try {
 
-            const mesaEliminada = await db.mesa.update({
-                where: {
-                    id: mesaId.id
-                },
-                data: {
-                    activa: false
-                }
-            })
+        const mesa = await db.mesa.findFirst({
+            where: {
+                id: mesaId.id
+            }
+        })
 
-            return mesaEliminada;
-
-        } catch (error) {
-            
+        if(!mesa) {
+            throw new Error("No se encontro la mesa con el id: " + mesaId)
         }
+
+        const mesaEliminada = await db.mesa.update({
+            where: {
+                id: mesaId.id
+            },
+            data: {
+                activa: false
+            }
+        })
+
+        return mesaEliminada;
+
     }
 
 }

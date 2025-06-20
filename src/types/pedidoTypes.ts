@@ -1,11 +1,17 @@
+import { EstadoPedido } from "@prisma/client";
+
 export interface getEstadoPedidoBody {
     id: string
 }
 
-export interface PedidoCompletoBody {
-  clienteId: string;
+export interface cambiarEstadoPedidoBody {
+  id: string,
+  estado: EstadoPedido
+}
+
+export interface crearPedidoBody {
   platos: {
-    platoId: number;
-    cantidad: number;
-  }[];
+    platoId: string,
+    cantidad: number
+  }[]
 }
