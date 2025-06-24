@@ -5,7 +5,7 @@ import { ErrorMessage } from "../utils/mensajes";
 
 const mesaService = new MesaService()
 
-export async function liberarMesa(req: Request, res: Response) {
+export async function eliminarMesa(req: Request, res: Response) {
     try {
 
         const mesaId = Number(req.params.id)
@@ -17,17 +17,19 @@ export async function liberarMesa(req: Request, res: Response) {
             return
         }
 
-        const mesaLiberada = await mesaService.liberarMesa(mesaId)
+        const mesaEliminada = await mesaService.eliminarMesa(req.body.id)
 
         res.status(201).json({
-            message: "Mesa liberada correctamente.",
-            data: mesaLiberada
+            message: "Mesa eliminada correctamente.",
+            data: mesaEliminada
         })
 
     } catch (error: any) {
+
         console.log(ErrorMessage() + error.message)
         res.status(404).json({
             error: error.message
         })
+
     }
 }

@@ -1,46 +1,64 @@
+import { CategoriaPlato } from "@prisma/client";
 import { db } from "../db/db"
-import { crearPlatoBody, eliminarPlatoBody } from "../types/platoTypes";
-import { ErrorMessage } from "../utils/mensajes";
 import { Decimal } from "@prisma/client/runtime/library"
 
 export class PlatoService {
-    async crearPlato(body: crearPlatoBody) {
-        try {
+    async crearPlato(nombre: string, descripcion: string, precio: Decimal, categoria: CategoriaPlato, menuId: number) {
 
-            const plato = await db.plato.create({
-                data: {
-                    ...body,
-                    precio: new Decimal(body.precio)
-                }
-            })
-
-            return plato;
-
-        } catch (error: any) {
-
-            console.log("Error creando usuario: ", body)
-            console.log(ErrorMessage() + error.message);
-            throw new Error("Error al crear usuario. Mira los logs para más información.")
+        const menuExistente = await db.menu.findUnique({
+            where:{
+                id: menuId
+            }
+        })
         
+        if(!menuExistente) {
+            throw new Error("No existe ninguno menu con el ID: " + menuId)
         }
+
+        const platoExistente = await db.plato.findUnique({
+            where: {
+                nombre: nombre
+            }
+        })
+
+        if(platoExistente) {
+            throw new Error("Ya existe un plato con ese nombre.")
+        }
+        
+        const plato = await db.plato.create({
+            data: {
+                nombre: nombre,
+                descripcion: descripcion,
+                precio: new Decimal(precio),
+                categoria: categoria,
+                menuId: menuId
+            }
+        })
+
+        return plato
     }
     
-    async eliminarPlato(body: eliminarPlatoBody) {
-        try {
-            
-            const platoEliminado = await db.plato.update({
-                where: {
-                    id: body.id
-                }, 
-                data: {
-                    activo: false
-                }
-            })
+    async eliminarPlato(platoId: number) {
 
-            return platoEliminado;
+        const plato = await db.plato.findUnique({
+            where: {
+                id: platoId
+            }
+        })
 
-        } catch (error) {
-            
+        if(!plato) {
+            throw new Error("No se encontro el plato con el Id: " + platoId)
         }
+
+        const platoEliminado = await db.plato.update({
+            where: {
+                id: platoId
+            }, 
+            data: {
+                activo: false
+            }
+        })
+
+        return platoEliminado
     }
 }

@@ -10,12 +10,15 @@ model Usuario {
     correo          String  @unique
     telefono        String  @unique
     direccion       String   
-    cantidad_pedidos Int @default(0)
+    cantidad_pedidos Int    @default(0)
     
     pedidos         Pedido[]
     rol             UsuarioRol
 
-    contraseña  String 
+    contraseña      String 
+
+    mesaReservada   Mesa?   @relation("ReservaUsuario", fields: [mesaReservadaId], references: [id])
+    mesaReservadaId  Int?   @unique
 
     @@map("Usuarios")
 }

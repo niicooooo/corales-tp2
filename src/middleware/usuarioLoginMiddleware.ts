@@ -9,10 +9,11 @@ const UsuarioLogin = z.object({
     contraseña: z.string({
         required_error: "La contraseña es requerida."
     }).min(6, "La contraseña deber tener como minimo 6 caracteres.")
+}).strict({
+    message: "Se paso un campo por demas."
 })
-
 export async function validarLoginUsuario(req: Request, res: Response, next: NextFunction) {
-    
+
     const result = UsuarioLogin.safeParse(req.body)
 
     if(!result.success) {
@@ -22,8 +23,8 @@ export async function validarLoginUsuario(req: Request, res: Response, next: Nex
         }))
 
         res.status(400).json({errors})
-        return;
+        return
     }
 
-    return next();
+    return next()
 }

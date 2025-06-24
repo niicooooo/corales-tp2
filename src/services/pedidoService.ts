@@ -1,48 +1,133 @@
+import { EstadoPedido } from "@prisma/client";
 import { db } from "../db/db"
-import { cambiarEstadoPedidoBody, crearPedidoBody, getEstadoPedidoBody } from "../types/pedidoTypes";
+import { crearPedidoBody, getEstadoPedidoByIdBody } from "../types/pedidoTypes";
+import { Decimal } from "@prisma/client/runtime/library";
+import { PlatoPedidoService } from "./platoPedidoService";
+import { UsuarioService } from "./usuarioService";
 export class PedidoService {
 
-    async getEstadoPedido(pedidoId: getEstadoPedidoBody) {
-        try {
+    private platoPedidoService = new PlatoPedidoService()
+    private usuarioService = new UsuarioService()
 
-            const pedido = await db.pedido.findUnique({
+    async getEstadoPedidoById(pedidoId: string) {
+
+        const pedido = await db.pedido.findFirst({
+            where: {
+                id: pedidoId
+            }
+        })
+
+        if(!pedido) {
+            throw new Error("No se encontro el pedido con Id: " + pedidoId)
+        }
+
+        return pedido.estado
+
+    }
+
+    async cambiarEstadoPedido(pedidoId: string, nuevoEstado: EstadoPedido) {
+
+        const pedido = await db.pedido.findUnique({
+            where: {
+                id: pedidoId
+            }
+        })
+
+        if(!pedido) {
+            throw new Error("No se encontro el pedido con Id: " + pedidoId)
+        }
+
+        const estado = await db.pedido.update({
+            where: {
+                id: pedidoId
+            },
+            data:{
+                estado: nuevoEstado
+            }
+        })
+
+        return estado
+
+    }
+
+    async crearPedido(body: crearPedidoBody, clienteId: string, lugar_de_entrega: string) {
+
+        const platos = body.platos
+
+        let descuento = 0
+        let sub_total = new Decimal(0)
+        let total = new Decimal(0)
+
+        const usuario = await db.usuario.findUnique({
+            where: {
+                id: clienteId
+            },
+            select: {
+                cantidad_pedidos: true
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("No se encontro al usuario con Id: " + clienteId)
+        }
+
+        let cant_pedidos = usuario.cantidad_pedidos ?? 0
+
+        if (cant_pedidos > 3 && cant_pedidos <= 5) {
+            descuento = 10
+        } 
+
+        if (cant_pedidos > 5 && cant_pedidos <= 7) {
+            descuento = 20
+        }
+
+        if (cant_pedidos > 7) {
+            descuento = 50
+        }
+
+        for (const plato of platos) {
+            const { platoId, cantidad } = plato
+
+            const platoData = await db.plato.findFirst({
                 where: {
-                    id: pedidoId.id
-                },
-                select: {
-                    estado: true
+                    id: platoId
                 }
             })
 
-            return pedido?.estado;
+            if (!platoData) {
+                throw new Error("No se encontro el plato con Id: " + platoId)
+            }
 
-        } catch (error) {
-            
+            const precioTotal = platoData.precio.mul(cantidad)
+            sub_total = sub_total.add(precioTotal)
         }
-    }
 
-    async cambiarEstadoPedido(body: cambiarEstadoPedidoBody) {
-        try {
-            const pedido = await db.pedido.update({
-                where: {
-                    id: body.id
-                },
-                data:{
-                    estado: body.estado
-                }
-            })
-
-            return pedido;
-        } catch (error) {
-            
+        if (descuento > 0) {
+            const descuentoDecimal = new Decimal(descuento).div(100)
+            const montoDescuento = sub_total.mul(descuentoDecimal)
+            total = sub_total.minus(montoDescuento)
+        } else {
+            total = sub_total
         }
-    }
 
-    async crearPedido(body: crearPedidoBody) {
-        try {
-            
-        } catch (error) {
-            
+        const pedido = await db.pedido.create({
+            data: {
+                usuarioId: clienteId,
+                estado: "PENDIENTE",
+                monto: total,
+                descuento: descuento,
+                lugar_de_entrega: lugar_de_entrega
+            }
+        })
+
+        await this.usuarioService.incrementarCantidadDePedidos(clienteId)
+
+        for (const plato of platos) {
+            const { platoId, cantidad } = plato
+
+            await this.platoPedidoService.crearPlatoPedido(pedido.id, platoId, cantidad)
         }
+
+        return pedido
     }
 }

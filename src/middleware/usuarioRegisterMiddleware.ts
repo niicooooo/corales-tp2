@@ -21,6 +21,8 @@ const UsuarioRegister = z.object({
     contraseña: z.string({
         required_error: "La contraseña es requerida."
     }).min(6, "La contraseña debe tener como minimo 6 caracteres.")
+}).strict({
+    message: "Se paso un campo por demas."
 })
 
 export async function validarRegisterUsuario(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -34,8 +36,8 @@ export async function validarRegisterUsuario(req: Request, res: Response, next: 
         }))
 
         res.status(400).json({errores}) 
-        return;
+        return
     }
 
-    return next();
+    return next()
 }

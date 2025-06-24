@@ -13,54 +13,87 @@ export class MesaService {
             }
         })
 
-        if(!mesasDisponibles) {
+        if(mesasDisponibles.length == 0) {
             throw new Error("No hay ninguna mesa disponible.")
         }
 
         return mesasDisponibles;
     }
 
-    async cambiarEstadoMesaDisponible(mesaId: modificarEstadoMesaBody) {
+    async liberarMesa(mesaId: number) {
 
         const mesa = await db.mesa.findFirst({
             where: {
-                id: mesaId.id
+                id: mesaId
             }
         })
 
         if(!mesa) {
-            throw new Error("No se encontro la mesa con id: " + mesaId.id)
+            throw new Error("No se encontro la mesa con id: " + mesaId)
+        }
+
+        if(mesa.estado == "DISPONIBLE") {
+            throw new Error("La mesa ya esta liberada.")
         }
 
         const mesaModificada = await db.mesa.update({
             where: {
-                id: mesaId.id
+                id: mesaId
             },
             data: {
                 estado: EstadoMesa.DISPONIBLE
             }
         })
 
-        return mesaModificada;
+        return mesaModificada
     }
 
-    async reservarMesa(mesaId: modificarEstadoMesaBody) {
+    async reservarMesa(mesaId: number, usuarioId: string) {
 
         const mesa = await db.mesa.findUnique({
-            where: { id: mesaId.id }
-        });
+            where: { 
+                id: mesaId 
+            }
+        })
 
         if (!mesa) {
-            throw new Error("La mesa no existe.");
+            throw new Error("La mesa no existe.")
         }
 
         if (mesa.estado !== EstadoMesa.DISPONIBLE) {
-            throw new Error("La mesa no esta disponible para ser reservada.");
+            throw new Error("La mesa no esta disponible para ser reservada.")
         }
+
+        const usuario = await db.usuario.findUnique({
+            where: {
+                id: usuarioId
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("No se encontro al usuario con Id: " + usuarioId)
+        }
+
+        if(usuario.mesaReservadaId) {
+            throw new Error("El usuario ya tiene una mesa reservada.")
+        }
+
+        await db.usuario.update({
+            where: {
+                id: usuarioId
+            },
+            data: {
+                mesaReservada: {
+                    connect: {
+                        id: mesaId
+                    }
+                }
+            }
+        })
 
         const mesaModificada = await db.mesa.update({
             where: {
-                id: mesaId.id
+                id: mesaId
             },
             data: {
                 estado: EstadoMesa.RESERVADA
@@ -87,15 +120,15 @@ export class MesaService {
             data: {}
         })
 
-        return mesa;
+        return mesa
 
     }
 
-    async eliminarMesa(mesaId: eliminarMesaBody) {
+    async eliminarMesa(mesaId: number) {
 
         const mesa = await db.mesa.findFirst({
             where: {
-                id: mesaId.id
+                id: mesaId
             }
         })
 
@@ -105,14 +138,14 @@ export class MesaService {
 
         const mesaEliminada = await db.mesa.update({
             where: {
-                id: mesaId.id
+                id: mesaId
             },
             data: {
                 activa: false
             }
         })
 
-        return mesaEliminada;
+        return mesaEliminada
 
     }
 

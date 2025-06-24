@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { MenuService } from "../services/menuService";
 import { ErrorMessage } from "../utils/mensajes";
 
@@ -6,11 +7,20 @@ const menuService = new MenuService();
 
 export async function getMenu(req: Request, res: Response) {
     try {
-        const id = parseInt(req.params.id)
+        const id = Number(req.params.id)
+
+        if (isNaN(id)) {
+            res.status(400).json({ 
+                error: "El ID tiene que ser un numero." 
+            })
+            return
+        }
+
         const menu = await menuService.getMenuById(id)
 
         res.status(201).json({
-            data: "Menu devuelto exitosamente."
+            message: "Menu devuelto exitosamente.",
+            menus: menu
         })
 
     } catch (error: any) {

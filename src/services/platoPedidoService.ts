@@ -3,21 +3,16 @@ import { } from "../types/pedidoTypes";
 import { crearPlatoPedidoBody } from "../types/platoPedidoTypes";
 
 export class PlatoPedidoService {
-    async crearPlatoPedido(body: crearPlatoPedidoBody) {
-        try {
-            
-            const platoPedido = await db.platosPedidos.create({
-                data: {
-                    pedidoId: body.pedidoId,
-                    platoId: body.platoId,
-                    cantidad: body.cantidad
-                }
-            })
+    async crearPlatoPedido(pedidoId: string, platoId: number, cantidad: number) {
 
-            return platoPedido;
+        const platoPedido = await db.platosPedidos.create({
+            data: {
+                pedidoId: pedidoId,
+                platoId: platoId,
+                cantidad: cantidad
+            }
+        })
 
-        } catch (error) {
-            
-        }
+        return platoPedido
     }
 }

@@ -1,44 +1,43 @@
 import { db } from "../db/db"
-import { registerClienteBody } from "../types/usuarioTypes"
 import bcrypt from "bcrypt"
 
 const salt_rounds = Number(process.env.SALT_ROUNDS)
 export class UsuarioService{
 
-    async registrarCliente(body: registerClienteBody) {
+    async registrarCliente(nombre: string, correo: string, telefono: string, direccion: string, contraseña: string) {
         
-        const correo = await db.usuario.findFirst({
+        const mail = await db.usuario.findUnique({
             where: {
-                correo: body.correo
+                correo: correo
             }
         })
 
-        if(correo){
+        if(mail){
             throw new Error("Correo ya registrado.")
         }
 
-        const telefono = await db.usuario.findFirst({
+        const phone = await db.usuario.findUnique({
             where: {
-                telefono: body.telefono
+                telefono: telefono
             }
         })
 
-        if(telefono) {
+        if(phone) {
             throw new Error("Telefono ya registrado.")
         }
 
         const cliente = await db.usuario.create({
             data: {
-                nombre: body.nombre,
-                correo: body.correo,
-                telefono: body.telefono,
-                direccion: body.direccion,
+                nombre: nombre,
+                correo: correo,
+                telefono: telefono,
+                direccion: direccion,
                 rol: "CLIENTE",
-                contraseña: await bcrypt.hash(body.contraseña, salt_rounds)
+                contraseña: await bcrypt.hash(contraseña, salt_rounds)
             }
         })
 
-        return cliente.id;
+        return cliente.id
     }
 
     async logearCliente(correo: string, contraseña: string) {
@@ -60,5 +59,30 @@ export class UsuarioService{
         }
 
         return usuario
+    }
+
+    async incrementarCantidadDePedidos(usuarioId: string) {
+        
+        const usuario = await db.usuario.findUnique({
+            where: {
+                id: usuarioId
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("No se encontro al usuario con Id: " + usuarioId)
+        }
+
+        const ususarioModificado = await db.usuario.update({
+            where: {
+                id: usuarioId
+            }, data: {
+                cantidad_pedidos: {
+                    increment: 1
+                }
+            }
+        })
+
+        return ususarioModificado
     }
 }

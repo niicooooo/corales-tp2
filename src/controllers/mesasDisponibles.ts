@@ -8,10 +8,10 @@ export async function getMesasDisponibles(_: Request, res: Response) {
     try {
         const mesasDisponibles = await mesaService.getMesasDisponibles()
         res.status(201).json({
-            data: mesasDisponibles
+            mesas_disponibles: mesasDisponibles
         })
     } catch (error: any) {
-        res.status(400).json({
+        res.status(404).json({
             error: error.message
         })
     }

@@ -8,5 +8,7 @@ model Mesa {
     estado EstadoMesa @default(DISPONIBLE)
     activa Boolean @default(true)
 
+    usuario Usuario? @relation("ReservaUsuario")
+
     @@map("Mesas")
 }
