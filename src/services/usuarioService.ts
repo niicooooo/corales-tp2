@@ -1,84 +1,123 @@
 import { db } from "../db/db"
-import { registerClienteBody, reservarMesaBody } from "../types/usuarioTypes"
-import { ErrorMessage } from "../utils/mensajes"
-import { MesaService } from "./mesaService";
-import { getEstadoPedidoBody } from "../types/pedidoTypes";
-import { PedidoService } from "./pedidoService";
-import { MenuService } from "./menuService";
-import { getMenuByIdBody } from "../types/menuTypes";
+import bcrypt from "bcrypt"
 
+const salt_rounds = Number(process.env.SALT_ROUNDS)
 export class UsuarioService{
 
-    private mesaService = new MesaService()
-    private pedidoService = new PedidoService()
-    private menuService = new MenuService()
-
-    async crearCliente(body: registerClienteBody) {
-        try {
-
-            const cliente = await db.usuario.create({
-                data: {
-                    rol: "CLIENTE",
-                    ...body
-                }
-            })
-
-            return cliente;
-
-        } catch (error: any) {
-
-            console.log("Error creando usuario: ", body)
-            console.log(ErrorMessage() + error.message);
-            throw new Error("Error al crear usuario. Mira los logs para más información.")
+    async registrarCliente(nombre: string, correo: string, telefono: string, direccion: string, contraseña: string) {
         
+        const mail = await db.usuario.findUnique({
+            where: {
+                correo: correo
+            }
+        })
+
+        if(mail){
+            throw new Error("Correo ya registrado.")
         }
+
+        const phone = await db.usuario.findUnique({
+            where: {
+                telefono: telefono
+            }
+        })
+
+        if(phone) {
+            throw new Error("Telefono ya registrado.")
+        }
+
+        const cliente = await db.usuario.create({
+            data: {
+                nombre: nombre,
+                correo: correo,
+                telefono: telefono,
+                direccion: direccion,
+                rol: "CLIENTE",
+                contraseña: await bcrypt.hash(contraseña, salt_rounds)
+            }
+        })
+
+        return cliente.id
     }
 
-    async reservarMesa(mesaId: reservarMesaBody) {
-        try {
-
-            const mesaReservada = await this.mesaService.cambiarEstadoMesaReservada(mesaId)
-
-            return mesaReservada;
-
-        } catch (error) {
+    async logearCliente(correo: string, contraseña: string) {
             
+        const usuario = await db.usuario.findFirst({
+            where: {
+                correo: correo
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("El usuario no existe.")
         }
+
+        const isValid = await bcrypt.compare(contraseña, usuario.contraseña)
+
+        if(!isValid) {
+            throw new Error("Constraseña incorrecta.")
+        }
+
+        return usuario
     }
 
-    async verMesasDisponibles() {
-        try {
+    async incrementarCantidadDePedidos(usuarioId: string) {
+        
+        const usuario = await db.usuario.findUnique({
+            where: {
+                id: usuarioId
+            }
+        })
 
-            const mesasDisponibles = await this.mesaService.getMesasDisponibles()
-
-            return mesasDisponibles;
-
-        } catch (error) {
-            
+        if(!usuario) {
+            throw new Error("No se encontro al usuario con Id: " + usuarioId)
         }
+
+        const ususarioModificado = await db.usuario.update({
+            where: {
+                id: usuarioId
+            }, data: {
+                cantidad_pedidos: {
+                    increment: 1
+                }
+            }
+        })
+
+        return ususarioModificado
     }
 
-    async verEstadoDelPedido(pedidoId: getEstadoPedidoBody) {
-        try {
+    async crearUsuarioAdmin(nombre: string, correo: string, telefono: string, direccion: string, contraseña: string) {
+        const mail = await db.usuario.findUnique({
+            where: {
+                correo: correo
+            }
+        })
 
-            const estado = await this.pedidoService.getEstadoPedido(pedidoId)
-
-            return estado;
-
-        } catch (error) {
-            
+        if(mail){
+            throw new Error("Correo ya registrado.")
         }
-    }
 
-    async verMenuPorId(menuId: getMenuByIdBody) {
-        try {
+        const phone = await db.usuario.findUnique({
+            where: {
+                telefono: telefono
+            }
+        })
 
-            const platos = await this.menuService.getMenuById(menuId)
-
-            return platos;
-
-        } catch (error) {
-            
+        if(phone) {
+            throw new Error("Telefono ya registrado.")
         }
+
+        const admin = await db.usuario.create({
+            data: {
+                nombre: nombre,
+                correo: correo,
+                telefono: telefono,
+                direccion: direccion,
+                rol: "ADMIN",
+                contraseña: await bcrypt.hash(contraseña, salt_rounds)
+            }
+        })  
+
+        return admin.id
     }
 }

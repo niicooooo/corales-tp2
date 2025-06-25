@@ -1,89 +1,177 @@
 import { EstadoMesa } from "@prisma/client";
 import { db } from "../db/db"
-import { eliminarMesaBody, modificarEstadoMesaBody } from "../types/mesaTypes";
-
 export class MesaService {
 
     async getMesasDisponibles() {
-        try {
-            const mesasDisponibles = await db.mesa.findMany({
-                where: {
-                    estado: EstadoMesa.DISPONIBLE
-                }
-            })
 
-            return mesasDisponibles;
+        const mesasDisponibles = await db.mesa.findMany({
+            where: {
+                estado: EstadoMesa.DISPONIBLE,
+                activa: true
+            },
+            select: {
+                id: true,
+                estado: true
+            }
+        })
 
-        } catch (error) {
-            
+        if(mesasDisponibles.length == 0) {
+            throw new Error("No hay ninguna mesa disponible.")
         }
+
+        return mesasDisponibles;
     }
 
-    async cambiarEstadoMesaDisponible(mesaId: modificarEstadoMesaBody) {
-        try {
-            const mesaModificada = await db.mesa.update({
+    async liberarMesa(mesaId: number) {
+
+        const mesa = await db.mesa.findFirst({
+            where: {
+                id: mesaId
+            }
+        })
+
+        if(!mesa) {
+            throw new Error("No se encontro la mesa con id: " + mesaId)
+        }
+
+        if (!mesa.activa) {
+            throw new Error("La mesa esta inactiva.")
+        }
+
+        if(mesa.estado == "DISPONIBLE") {
+            throw new Error("La mesa ya esta liberada.")
+        }
+
+        const usuario = await db.usuario.findFirst({
+            where: {
+                mesaReservadaId: mesaId
+            }
+        })
+
+        if (usuario) {
+            await db.usuario.update({
                 where: {
-                    id: mesaId.id
+                    id: usuario.id
                 },
                 data: {
-                    estado: EstadoMesa.DISPONIBLE
+                    mesaReservada: {
+                        disconnect: true
+                    }
                 }
             })
-
-            return mesaModificada;
-        } catch (error) {
-            
         }
+
+        const mesaModificada = await db.mesa.update({
+            where: {
+                id: mesaId
+            },
+            data: {
+                estado: EstadoMesa.DISPONIBLE
+            }
+        })
+
+        return mesaModificada
     }
 
-    async cambiarEstadoMesaReservada(mesaId: modificarEstadoMesaBody) {
-        try {
-            const mesaModificada = await db.mesa.update({
-                where: {
-                    id: mesaId.id
-                },
-                data: {
-                    estado: EstadoMesa.RESERVADA
-                }
-            })
+    async reservarMesa(mesaId: number, usuarioId: string) {
 
-            return mesaModificada;
-        } catch (error) {
-            
+        const mesa = await db.mesa.findUnique({
+            where: { 
+                id: mesaId 
+            }
+        })
+
+        if (!mesa) {
+            throw new Error("La mesa con ID " + mesaId + " no existe.")
         }
+
+        if (!mesa.activa) {
+            throw new Error("La mesa esta inactiva, por ende no puede reservarse.")
+        }
+
+        if (mesa.estado !== EstadoMesa.DISPONIBLE) {
+            throw new Error("La mesa no esta disponible para ser reservada.")
+        }
+
+        const usuario = await db.usuario.findUnique({
+            where: {
+                id: usuarioId
+            }
+        })
+
+        if(!usuario) {
+            throw new Error("No se encontro al usuario con Id: " + usuarioId)
+        }
+
+        if(usuario.mesaReservadaId) {
+            throw new Error("El usuario ya tiene una mesa reservada.")
+        }
+
+        await db.usuario.update({
+            where: {
+                id: usuarioId
+            },
+            data: {
+                mesaReservada: {
+                    connect: {
+                        id: mesaId
+                    }
+                }
+            }
+        })
+
+        const mesaModificada = await db.mesa.update({
+            where: {
+                id: mesaId
+            },
+            data: {
+                estado: EstadoMesa.RESERVADA
+            }
+        })
+
+        return mesaModificada
+
     }
 
     async crearMesa() {
-        try {
-            
-            const mesa = await db.mesa.create({
-                data: {}
-            })
 
-            return mesa;
+        const cantidadMesas = await db.mesa.count({})
 
-        } catch (error) {
-            
+        if (cantidadMesas >= 15) {
+            throw new Error("No se pueden crear mas mesas. Limite alcanzado (15).");
         }
+
+        const mesa = await db.mesa.create({
+            data: {}
+        })
+
+        return mesa
+
     }
 
-    async eliminarMesa(mesaId: eliminarMesaBody) {
-        try {
+    async eliminarMesa(mesaId: number) {
 
-            const mesaEliminada = await db.mesa.update({
-                where: {
-                    id: mesaId.id
-                },
-                data: {
-                    activa: false
-                }
-            })
+        const mesa = await db.mesa.findFirst({
+            where: {
+                id: mesaId
+            }
+        })
 
-            return mesaEliminada;
-
-        } catch (error) {
-            
+        if(!mesa) {
+            throw new Error("No se encontro la mesa con el id: " + mesaId)
         }
+
+        const mesaEliminada = await db.mesa.update({
+            where: {
+                id: mesaId
+            },
+            data: {
+                activa: false
+            }
+        })
+
+        return mesaEliminada
+
     }
 
 }
