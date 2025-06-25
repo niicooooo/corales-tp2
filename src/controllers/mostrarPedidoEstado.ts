@@ -12,7 +12,7 @@ export async function getEstadoPedidoById(req: Request, res: Response) {
 
         const estado = await pedidoService.getEstadoPedidoById(id)
         res.status(200).json({
-            data: estado
+            estado: estado
         })
 
     } catch (error: any) {
