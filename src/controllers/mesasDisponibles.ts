@@ -7,7 +7,7 @@ const mesaService = new MesaService()
 export async function getMesasDisponibles(_: Request, res: Response) {
     try {
         const mesasDisponibles = await mesaService.getMesasDisponibles()
-        res.status(201).json({
+        res.status(200).json({
             mesas_disponibles: mesasDisponibles
         })
     } catch (error: any) {

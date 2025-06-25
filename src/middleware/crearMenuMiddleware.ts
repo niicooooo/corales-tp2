@@ -5,7 +5,7 @@ const Menu = z.object({
     nombre: z.string({
         required_error: "El nombre es requerido.",
         invalid_type_error: "El nombre tiene que ser string."
-    })
+    }).min(4, "Debe tener como minimo 4 caracteres.")
 }).strict({
     message: "Se paso un campo por demas."
 })

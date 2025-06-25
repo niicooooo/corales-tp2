@@ -19,7 +19,7 @@ export async function liberarMesa(req: Request, res: Response) {
 
         const mesaLiberada = await mesaService.liberarMesa(mesaId)
 
-        res.status(201).json({
+        res.status(200).json({
             message: "Mesa liberada correctamente.",
             data: mesaLiberada
         })

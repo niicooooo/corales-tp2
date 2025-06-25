@@ -1,13 +1,17 @@
 import { Router } from "express";
 
-import { PedidoService } from "../services/pedidoService";
 import { getEstadoPedidoById } from "../controllers/mostrarPedidoEstado";
-
-const pedidoService = new PedidoService()
+import { crearPedido } from "../controllers/crearPedido";
+import { validarCreacionDePedido } from "../middleware/crearPedidoMiddleware";
+import { validarCambioDeEstado } from "../middleware/cambiarEstadoPedidoMiddleware";
+import { validarEmptyBody } from "../middleware/validarEmptyBodyMiddlewate";
+import { autenticarAdmin } from "../middleware/autenticarAdminMiddleware";
+import { cambiarEstadoPedido } from "../controllers/cambiarEstadoPedido";
 
 export const pedidoRouter = Router() 
 
-pedidoRouter.get("/mostar-estado-pedido", getEstadoPedidoById)
-pedidoRouter.post("/crear-pedido", async (req, res) => {
-    
-})
+pedidoRouter.get("/mostrar-estado-pedido/:id", getEstadoPedidoById)
+
+pedidoRouter.post("/crear-pedido", validarEmptyBody ,validarCreacionDePedido ,crearPedido)
+
+pedidoRouter.patch("/cambiar-estado-pedido", validarEmptyBody , autenticarAdmin, validarCambioDeEstado, cambiarEstadoPedido)

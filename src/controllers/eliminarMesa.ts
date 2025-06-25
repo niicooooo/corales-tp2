@@ -17,15 +17,15 @@ export async function eliminarMesa(req: Request, res: Response) {
             return
         }
 
-        const mesaEliminada = await mesaService.eliminarMesa(req.body.id)
+        const mesaEliminada = await mesaService.eliminarMesa(mesaId)
 
-        res.status(201).json({
+        res.status(200).json({
             message: "Mesa eliminada correctamente.",
             data: mesaEliminada
         })
 
     } catch (error: any) {
-
+        
         console.log(ErrorMessage() + error.message)
         res.status(404).json({
             error: error.message

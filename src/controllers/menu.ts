@@ -18,7 +18,7 @@ export async function getMenu(req: Request, res: Response) {
 
         const menu = await menuService.getMenuById(id)
 
-        res.status(201).json({
+        res.status(200).json({
             message: "Menu devuelto exitosamente.",
             menus: menu
         })

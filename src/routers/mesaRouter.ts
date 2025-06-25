@@ -14,8 +14,8 @@ mesaRouter.get("/mesas-disponibles", getMesasDisponibles)
 
 mesaRouter.post("/crear-mesa",validarEmptyBody,autenticarAdmin, crearMesa)
 
-mesaRouter.post("/eliminar-mesa/:id",autenticarAdmin, eliminarMesa)
+mesaRouter.delete("/eliminar-mesa/:id",autenticarAdmin, eliminarMesa)
 
-mesaRouter.post("/reservar-mesa/:id", reservarMesa)
+mesaRouter.patch("/reservar-mesa/:id", reservarMesa)
 
-mesaRouter.post("/liberar-mesa/:id",autenticarAdmin, liberarMesa)
+mesaRouter.patch("/liberar-mesa/:id",autenticarAdmin, liberarMesa)

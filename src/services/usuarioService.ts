@@ -85,4 +85,39 @@ export class UsuarioService{
 
         return ususarioModificado
     }
+
+    async crearUsuarioAdmin(nombre: string, correo: string, telefono: string, direccion: string, contraseña: string) {
+        const mail = await db.usuario.findUnique({
+            where: {
+                correo: correo
+            }
+        })
+
+        if(mail){
+            throw new Error("Correo ya registrado.")
+        }
+
+        const phone = await db.usuario.findUnique({
+            where: {
+                telefono: telefono
+            }
+        })
+
+        if(phone) {
+            throw new Error("Telefono ya registrado.")
+        }
+
+        const admin = await db.usuario.create({
+            data: {
+                nombre: nombre,
+                correo: correo,
+                telefono: telefono,
+                direccion: direccion,
+                rol: "ADMIN",
+                contraseña: await bcrypt.hash(contraseña, salt_rounds)
+            }
+        })  
+
+        return admin.id
+    }
 }

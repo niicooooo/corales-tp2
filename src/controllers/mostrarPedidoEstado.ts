@@ -5,19 +5,22 @@ import { ErrorMessage } from "../utils/mensajes";
 
 const pedidoService = new PedidoService()
 
-export async function getEstadoPedidoById(res: Response, req: Request) {
+export async function getEstadoPedidoById(req: Request, res: Response) {
     try {
         
         const id = req.params.id
 
         const estado = await pedidoService.getEstadoPedidoById(id)
-        res.status(201).json({
+        res.status(200).json({
             data: estado
         })
+
     } catch (error: any) {
+        
         console.log(ErrorMessage() + error.message)
         res.status(404).json({
             error: error.message
         })
+    
     }
 }

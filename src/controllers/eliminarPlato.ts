@@ -5,10 +5,10 @@ import { ErrorMessage } from "../utils/mensajes";
 
 const platoService = new PlatoService()
 
-export async function eliminrPlato(req: Request, res: Response) {
+export async function eliminarPlato(req: Request, res: Response) {
     try {
 
-        const platoId = req.body.platoId
+        const platoId = Number(req.params.id)
 
         if (isNaN(platoId)) {
             res.status(400).json({ 
@@ -19,7 +19,7 @@ export async function eliminrPlato(req: Request, res: Response) {
 
         const platoEliminado = await platoService.eliminarPlato(platoId)
 
-        res.status(400).json({
+        res.status(200).json({
             message: "Plato eliminado correctamente.",
             data: platoEliminado
         })

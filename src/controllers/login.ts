@@ -9,19 +9,14 @@ const authService = new AuthService();
 
 export async function login(req: Request, res: Response) {
     try {
-        const tokenViejo = req.cookies.token
-
-        if(tokenViejo) {
-            throw new Error("Ya hay una sesion iniciada.")
-        }
-
         const {correo, contraseña} = req.body
 
         const usuario = await usuarioService.logearCliente(correo, contraseña)
 
         const token = await authService.generarJsonWebAccessToken({
             id: usuario.id,
-            rol: usuario.rol
+            rol: usuario.rol,
+            direccion: usuario.direccion
         })
 
         res.cookie('token', token, {

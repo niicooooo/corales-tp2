@@ -4,29 +4,29 @@ export class MenuService {
     async getMenuById(menuId: number) {
 
         const menu = await db.menu.findUnique({
-            where: {
-                id: menuId
-            }
-        })
-
-        if(!menu) {
-            throw new Error("No existe el menu con Id: " + menuId)
-        }
-
-        const platos = await db.menu.findMany({
-            where: {
-                id: menuId
+            where: { 
+                id: menuId 
             },
             select: {
-                platos: true
+                id: true,
+                nombre: true,
+                platos: {
+                    where: {
+                        activo: true
+                    }
+                }
             }
         })
 
-        if(platos.length == 0) {
-            throw new Error("El menu: " + menuId + " no tiene ningun plato disponible.")
+        if (!menu) {
+            throw new Error("No existe el menú con Id: " + menuId)
         }
 
-        return platos   
+        if (menu.platos.length === 0) {
+            throw new Error("El menú con Id: " + menuId + " no tiene ningún plato disponible.")
+        }
+
+        return menu
     }
 
     async getAllMenus() {

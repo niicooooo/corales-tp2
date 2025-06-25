@@ -50,6 +50,10 @@ export class PlatoService {
             throw new Error("No se encontro el plato con el Id: " + platoId)
         }
 
+        if(!plato.activo) {
+            throw new Error("El plato con Id: " + platoId + " ya esta eliminado.")
+        }
+
         const platoEliminado = await db.plato.update({
             where: {
                 id: platoId

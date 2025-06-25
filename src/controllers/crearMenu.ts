@@ -10,15 +10,18 @@ export async function crearMenu(req: Request, res: Response) {
 
         const { nombre } = req.body
 
-        const menu = menuService.crearMenu(nombre)
+        const menu = await menuService.crearMenu(nombre)
         res.status(201).json({
             message: "Menu creado correctamente.",
             data: menu
         })
+
     } catch (error: any) {
+
         console.log(ErrorMessage() + error.message)
         res.status(400).json({
             error: error.message
         })
+        
     }
 }

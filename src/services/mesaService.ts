@@ -1,7 +1,5 @@
 import { EstadoMesa } from "@prisma/client";
 import { db } from "../db/db"
-import { eliminarMesaBody, modificarEstadoMesaBody } from "../types/mesaTypes";
-
 export class MesaService {
 
     async getMesasDisponibles() {
@@ -10,6 +8,10 @@ export class MesaService {
             where: {
                 estado: EstadoMesa.DISPONIBLE,
                 activa: true
+            },
+            select: {
+                id: true,
+                estado: true
             }
         })
 
@@ -32,8 +34,31 @@ export class MesaService {
             throw new Error("No se encontro la mesa con id: " + mesaId)
         }
 
+        if (!mesa.activa) {
+            throw new Error("La mesa esta inactiva.")
+        }
+
         if(mesa.estado == "DISPONIBLE") {
             throw new Error("La mesa ya esta liberada.")
+        }
+
+        const usuario = await db.usuario.findFirst({
+            where: {
+                mesaReservadaId: mesaId
+            }
+        })
+
+        if (usuario) {
+            await db.usuario.update({
+                where: {
+                    id: usuario.id
+                },
+                data: {
+                    mesaReservada: {
+                        disconnect: true
+                    }
+                }
+            })
         }
 
         const mesaModificada = await db.mesa.update({
@@ -57,7 +82,11 @@ export class MesaService {
         })
 
         if (!mesa) {
-            throw new Error("La mesa no existe.")
+            throw new Error("La mesa con ID " + mesaId + " no existe.")
+        }
+
+        if (!mesa.activa) {
+            throw new Error("La mesa esta inactiva, por ende no puede reservarse.")
         }
 
         if (mesa.estado !== EstadoMesa.DISPONIBLE) {
@@ -100,17 +129,13 @@ export class MesaService {
             }
         })
 
-        return mesaModificada;
+        return mesaModificada
 
     }
 
     async crearMesa() {
 
-        const cantidadMesas = await db.mesa.count({
-            where: {
-                activa: true
-            }
-        });
+        const cantidadMesas = await db.mesa.count({})
 
         if (cantidadMesas >= 15) {
             throw new Error("No se pueden crear mas mesas. Limite alcanzado (15).");

@@ -1,9 +1,15 @@
 import { EstadoPedido } from "@prisma/client";
 import { db } from "../db/db"
-import { crearPedidoBody, getEstadoPedidoByIdBody } from "../types/pedidoTypes";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PlatoPedidoService } from "./platoPedidoService";
 import { UsuarioService } from "./usuarioService";
+
+interface crearPedidoBody {
+    platos: {
+        platoId: number,
+        cantidad: number
+    }[]
+}
 export class PedidoService {
 
     private platoPedidoService = new PlatoPedidoService()
@@ -11,7 +17,7 @@ export class PedidoService {
 
     async getEstadoPedidoById(pedidoId: string) {
 
-        const pedido = await db.pedido.findFirst({
+        const pedido = await db.pedido.findUnique({
             where: {
                 id: pedidoId
             }
@@ -37,6 +43,10 @@ export class PedidoService {
             throw new Error("No se encontro el pedido con Id: " + pedidoId)
         }
 
+        if (pedido.estado == nuevoEstado) {
+            throw new Error("El pedido ya tiene el estado: " + nuevoEstado)
+        }
+
         const estado = await db.pedido.update({
             where: {
                 id: pedidoId
@@ -46,11 +56,11 @@ export class PedidoService {
             }
         })
 
-        return estado
+        return estado.estado
 
     }
 
-    async crearPedido(body: crearPedidoBody, clienteId: string, lugar_de_entrega: string) {
+    async crearPedido(body: crearPedidoBody, clienteId: string, entrega: string) {
 
         const platos = body.platos
 
@@ -98,6 +108,10 @@ export class PedidoService {
                 throw new Error("No se encontro el plato con Id: " + platoId)
             }
 
+            if (!platoData.activo) {
+                throw new Error("El plato con Id:" + platoId + "no esta disponible.")
+            }
+
             const precioTotal = platoData.precio.mul(cantidad)
             sub_total = sub_total.add(precioTotal)
         }
@@ -116,7 +130,7 @@ export class PedidoService {
                 estado: "PENDIENTE",
                 monto: total,
                 descuento: descuento,
-                lugar_de_entrega: lugar_de_entrega
+                lugar_de_entrega: entrega
             }
         })
 
