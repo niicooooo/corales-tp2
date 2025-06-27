@@ -9,7 +9,7 @@ const usuarioService = new UsuarioService()
 export async function crearUsuarioAdmin(req: Request, res: Response) {
     try {
         const {nombre, correo, telefono, direccion, contraseña} = req.body
-        const usuario = await usuarioService.registrarCliente(nombre, correo, telefono, direccion, contraseña)
+        const admin = await usuarioService.crearUsuarioAdmin(nombre, correo, telefono, direccion, contraseña)
 
         res.status(201).json(
             { data: "Admin creado exitosamente." }
